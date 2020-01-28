@@ -1,0 +1,14 @@
+name: Тестируем коммуникации между сегментами, получаем картинку
+units:
+   receiver:
+      module: streampy.units.socket.pickleReceiver
+      threads: 10     
+            
+            
+   showImage:
+      module: streampy.units.images.showImage
+      threads: 1
+      config:
+      in:
+         image: 
+            from: receiver  

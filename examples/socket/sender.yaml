@@ -1,0 +1,63 @@
+name: Тестируем коммуникации между сегментами, отправляем картинку в другой сегмент
+units:
+#    row:
+#       module: streampy.units.common.getRowFromCSV
+#       config:
+#          type: infinity
+#          shuffle: true
+#          from: 0.1
+#          to: 1.0
+#          file: c:/Users/Public/datasets/ava/AVA.txt
+#          metaIdField: 1
+#          
+#    avaToFilename:
+#       module: streampy.units.common.getField
+#       config:
+#          field: 1
+#          prefix: "c:/Users/Public/datasets/ava/images/"
+#          postfix: ".jpg"
+#       in:
+#          row: 
+#             from: row
+#             
+#    loadImage:
+#       module: streampy.units.images.loadImage
+#       threads: 4
+#       in:
+#          filename:
+#             from: avaToFilename
+#             out: field 
+
+   captureImage:
+      module: streampy.units.images.captureImage
+      threads: 1
+      config:
+         width: 1920
+         height: 1080
+         
+         
+   resizeImage:
+      module: streampy.units.images.resizeImage
+      threads: 10      
+      config:
+#          augment: 0.95
+         resize: fit
+         width: 640
+         height: 480
+#          toFloat: True
+#          multiply: 0.003921568627451
+      in:
+         image: 
+            from: captureImage  
+         
+         
+
+   sender:
+      module: streampy.units.socket.pickleSender
+      threads: 4
+      in:
+         image:
+            from: captureImage
+#             from: resizeImage
+#             from: loadImage
+            out: image

@@ -1,0 +1,42 @@
+name: fit
+units:
+   trainReceiver:
+      module: streampy.units.socket.pickleReceiver
+      threads: 10
+      port: 9090 
+
+   validReceiver:
+      module: streampy.units.socket.pickleReceiver
+      threads: 10     
+      port: 9091
+                                 
+   fit:
+      module: streampy.units.tf.fit
+      config:
+         inputShape: [224, 224, 3]
+         outputShape: [7, 7, 5]
+#          optimizer: adam
+#          metrics: [mae]
+         batch: 64
+         epochs: 100
+         trainSteps: 1000
+         validSteps: 100
+         
+         model:
+            module: examples.fd.detector
+            class: MNV2
+            config:
+               path: ../models/
+               inputShape: [224, 224, 3]
+               outputShape: [7, 7, 5]
+               
+      in:
+         train:
+            size: 64
+            out: sample
+            from: trainReceiver
+         valid:
+            size: 64
+            out: sample
+            from: validReceiver
+            

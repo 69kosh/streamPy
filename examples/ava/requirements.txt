@@ -1,0 +1,5 @@
+ffmpeg-python
+h5py
+numpy
+opencv-python
+PyYAML

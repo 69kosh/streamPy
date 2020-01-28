@@ -1,0 +1,12 @@
+version: "2"
+services:
+ train:
+  build: .
+  networks:
+   - default
+  volumes:
+   - /c/Users/Public/datasets/ava:/dataset
+   - /c/Users/Public/datasets/ava:/models
+   - .:/usr/src/app
+   - ../../streampy:/usr/src/app/streampy
+   - ../../units:/usr/src/app/units

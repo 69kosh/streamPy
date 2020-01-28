@@ -1,0 +1,38 @@
+name: valid
+units:
+   trainReceiver:
+      module: streampy.units.socket.pickleReceiver
+      threads: 10
+      port: 9090 
+
+            
+
+   cells2bboxes:
+      module: streampy.units.datasets.cells2bboxes
+      config:
+         cells: [7, 7]
+         cellSizes: [32, 32]
+      in:
+         sample: 
+            from: trainReceiver
+            out: sample
+            
+   show2:
+      module: streampy.units.images.showImageBboxes
+      config:
+         wait: 1000
+      in:
+         sample: 
+            from: cells2bboxes
+            out: sample            
+#                                  
+#    sender:
+#       module: streampy.units.socket.pickleSender
+#       threads: 4
+#       config:
+#          port: 9091
+#       in:
+#          sample:
+#             size: 64
+#             out: out
+#             from: merge2

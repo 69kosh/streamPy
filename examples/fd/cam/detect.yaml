@@ -1,0 +1,103 @@
+name: Детектим объекты с камеры
+units:
+   captureImage:
+      module: streampy.units.images.captureImage
+      threads: 1
+      config:
+         width: 640
+         height: 480
+#          source: D:\datasets\homevideo\WP_20170813_003.mp4
+#          source: D:\datasets\homevideo\WP_20151114_002.mp4
+#          source: D:\datasets\homevideo\WP_20170630_002.mp4
+#          source: D:\datasets\homevideo\WP_20170107_002.mp4
+#    showImage:
+#       module: streampy.units.images.showImage
+#       threads: 1
+#       config:
+#       in:
+#          image: 
+#             from: captureImage  
+
+   resizeImage:
+      module: streampy.units.images.resizeImage
+      threads: 1
+      config:
+         resize: fit
+         width: 640
+         height: 480
+         
+      in:
+         image: 
+            from: captureImage
+            out: image     
+
+   colorImage:
+      module: streampy.units.images.colorImage
+      threads: 1
+      config:
+         toRGB: True
+         toFloat: True
+         multiply: 0.003921568627451
+         
+      in:
+         image: 
+            from: resizeImage
+            out: image             
+            
+   predict:
+      module: streampy.units.tf.predict
+      threads: 1
+      config:
+         batchSize: 1
+         model:
+            module: examples.fd.detector
+            class: MNV2
+            config:
+               path: ../models/
+               inputShape: [480, 640, 3]
+               outputShape: [15, 20, 5]
+      in:
+         sample: 
+            from: colorImage
+            out: image
+
+# мержим его с оригинальной картинкой и преобразуем ячейки в ббоксы по ней
+   merge:
+      module: streampy.units.common.merge
+      in:
+         image:
+            from: resizeImage
+            out: image
+         predict: 
+            from: predict
+            out: predict
+            
+   cells2bboxes:
+      module: streampy.units.datasets.cells2bboxes
+      config:
+         cells: [15, 20]
+         cellSize: [32, 32]
+         threshold: 0.75
+      in:
+         sample: 
+            from: merge
+            out: out
+
+#    tracking:
+#       module: streampy.units.datasets.trackingBboxes
+#       config:
+#          pass: pass
+#       in:
+#          sample: 
+#             from: cells2bboxes
+#             out: sample
+       
+   showImage:
+      module: streampy.units.images.showImageBboxes
+      config:
+         wait: 1
+#          zoom: 1.5
+      in:
+         sample: 
+            from: cells2bboxes # tracking
+            out: sample

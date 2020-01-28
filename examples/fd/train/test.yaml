@@ -1,0 +1,194 @@
+name: valid
+units:
+   row:
+      module: streampy.units.common.getRowFromBboxes
+      config:
+         type: infinity
+         shuffle: true
+         from: 0
+         to: 1
+         file: C:/Users/Public/datasets/faces/wider/wider_face_split/wider_face_val_bbx_gt.txt
+         metaIdField: filename
+         
+   filename:
+      module: streampy.units.common.getField
+      config:
+         field: filename
+         prefix: C:/Users/Public/datasets/faces/wider/WIDER_val/images/
+      in:
+         row: 
+            from: row
+            
+   loadImage:
+      module: streampy.units.images.loadImage
+      threads: 4
+      in:
+         filename:
+            from: filename
+            out: field 
+            
+   bboxes:
+      module: streampy.units.common.getField
+      config:
+         field: bboxes
+      in:
+         row: 
+            from: row
+
+   merge:
+      module: streampy.units.common.merge
+      in:
+         image:
+            from: loadImage
+         predict: 
+            from: bboxes
+            out: field
+
+   augmentImageBboxes:
+      module: streampy.units.images.augmentImageBboxes
+      threads: 4
+      config:
+         augment: 0.25
+      in:
+         sample: 
+            from: merge
+            out: out 
+
+   resizeImageBboxes:
+      module: streampy.units.images.resizeImageBboxes
+      threads: 4
+      config:
+         resize: fit
+         width: 224
+         height: 224
+         minWidth: 1
+         minHeight: 1
+  
+      in:
+         sample: 
+            from: augmentImageBboxes
+            out: sample   
+            
+            
+#    show:
+#       module: streampy.units.images.showImageBboxes
+#       config:
+#          wait: 1000
+#       in:
+#          sample: 
+#             from: resizeImageBboxes
+#             out: sample
+#             
+            
+   getImage:
+      module: streampy.units.common.getField
+      config:
+         field: image
+      in:
+         row: 
+            from: resizeImageBboxes
+            out: sample
+    
+   colorImage:
+      module: streampy.units.images.colorImage
+      threads: 4
+      config:
+         toRGB: True
+         toFloat: True
+         multiply: 0.003921568627451
+         
+      in:
+         image: 
+            from: getImage
+            out: field    
+            
+   getPredict:
+      module: streampy.units.common.getField
+      config:
+         field: predict
+      in:
+         row: 
+            from: resizeImageBboxes            
+            out: sample
+            
+   cells:
+      module: streampy.units.datasets.bboxes2cells
+      config:
+         cells: [7, 7]
+         cellSizes: [32, 32]
+      in:
+         bboxes: 
+            from: getPredict
+            out: field
+
+   merge2:
+      module: streampy.units.common.merge
+      in:
+         image:
+            from: colorImage
+            out: image
+         predict: 
+            from: cells
+            out: cells
+            
+      
+                
+# делаем что-то важное, получая в ответ ячейки 
+# с предсказаниями, но пока эмулируем самим ячейками из данныхъ            
+   getPredict2:
+      module: streampy.units.common.getField
+      config:
+         field: predict
+      in:
+         row: 
+            from: merge2            
+            out: out 
+            
+   getImage2:
+      module: streampy.units.common.getField
+      config:
+         field: image
+      in:
+         row: 
+            from: augmentImageBboxes            
+            out: sample             
+# мержим его с оригинальной картинкой и преобразуем ячейки в ббоксы по ней
+   merge3:
+      module: streampy.units.common.merge
+      in:
+         image:
+            from: getImage2
+            out: field
+         predict: 
+            from: getPredict2
+            out: field
+            
+   cells2bboxes:
+      module: streampy.units.datasets.cells2bboxes
+      config:
+         cells: [7, 7]
+         cellSizes: [32, 32]
+      in:
+         sample: 
+            from: merge3
+            out: out
+            
+   show2:
+      module: streampy.units.images.showImageBboxes
+      config:
+         wait: 10000
+      in:
+         sample: 
+            from: cells2bboxes
+            out: sample            
+#                                  
+#    sender:
+#       module: streampy.units.socket.pickleSender
+#       threads: 4
+#       config:
+#          port: 9091
+#       in:
+#          sample:
+#             size: 64
+#             out: out
+#             from: merge2

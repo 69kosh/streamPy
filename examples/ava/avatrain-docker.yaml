@@ -1,0 +1,168 @@
+name: AVA dataset train data flow
+units:
+   RowTrain:
+      module: streampy.units.common.getRowFromCSV
+#       class: getRowFromCSV
+      config:
+         type: infinity
+         shuffle: true
+         from: 0.1
+         to: 1.0
+         file: "/dataset/AVA.txt"
+         metaIdField: 1
+         
+ 
+   avaToAestheticTrain:
+      module: streampy.units.datasets.avaAestheticNormalize
+#       class: aestheticNormalize
+      in:
+         row: 
+            from: RowTrain
+            
+   avaToFilenameTrain:
+      module: streampy.units.common.getField
+#       class: getField
+      config:
+         field: 1
+         prefix: "/dataset/images/"
+         postfix: ".jpg"
+      in:
+         row: 
+            from: RowTrain
+            
+   loadImageTrain:
+      module: streampy.units.images.loadImage
+#       class: loadImage
+      threads: 10
+      in:
+         filename:
+            out: field 
+            from: avaToFilenameTrain
+            
+   resizeImageTrain:
+      module: streampy.units.images.resizeImage
+#       class: resizeImage
+      threads: 10      
+      config:
+         augment: 0.95
+         resize: fit
+         width: 224
+         height: 224
+         toFloat: True
+         multiply: 0.003921568627451
+         
+      in:
+         image: 
+            from: loadImageTrain           
+
+   mergeTrain:
+      module: streampy.units.common.merge
+#       class: merge
+      config:
+#          fields:
+#             - image
+#             - predict
+      in:
+         image:
+            from: resizeImageTrain
+         predict: 
+            from: avaToAestheticTrain
+
+   RowValid:
+      module: streampy.units.common.getRowFromCSV
+#       class: getRowFromCSV
+      config:
+         type: infinity
+         shuffle: true
+         from: 0.0
+         to: 0.1
+         file: "/dataset/AVA.txt"
+         metaIdField: 1
+         
+ 
+   avaToAestheticValid:
+      module: streampy.units.datasets.avaAestheticNormalize
+#       class: aestheticNormalize
+      in:
+         row: 
+            from: RowValid
+            
+   avaToFilenameValid:
+      module: streampy.units.common.getField
+#       class: getField
+      config:
+         field: 1
+         prefix: "/dataset/images/"
+         postfix: ".jpg"
+      in:
+         row: 
+            from: RowValid
+            
+   loadImageValid:
+      module: streampy.units.images.loadImage
+#       class: loadImage
+      threads: 10
+      in:
+         filename:
+            out: field 
+            from: avaToFilenameValid
+            
+   resizeImageValid:
+      module: streampy.units.images.resizeImage
+#       class: resizeImage
+      threads: 10      
+      config:
+         augment: 0.95
+         resize: fit
+         width: 224
+         height: 224
+         toFloat: True
+         multiply: 0.003921568627451
+         
+      in:
+         image: 
+            from: loadImageValid           
+
+   mergeValid:
+      module: streampy.units.common.merge
+#       class: merge
+      config:
+#          fields:
+#             - image
+#             - predict
+      in:
+         image:
+            from: resizeImageValid
+         predict: 
+            from: avaToAestheticValid
+                     
+   train:
+      module: streampy.units.tf.fit
+#       class: fit
+      config:
+         shape: [224, 224]
+         loss: mse
+         optimizer: adam
+         metrics: [mae]
+         batch: 32
+         epochs: 10
+         trainSteps: 100
+         validSteps: 10
+         
+         model:
+            module: MNV2
+            class: MNV2
+            config:
+               path: "/models/"
+               inputShape: [224, 224]
+               outputShape: 1
+               
+      in:
+         train:
+            size: 32
+            out: out
+            from: mergeTrain
+         valid:
+            size: 32
+            out: out
+            from: mergeValid
