@@ -20,7 +20,7 @@ class Worker(Base):
             for row in reader:
                 self.fullData.append(row)
         
-        if config['shuffle']:
+        if config.get('shuffle', False):
             shuffle(self.fullData)
 
     def process(self, inData, inMeta):
