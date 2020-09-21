@@ -15,7 +15,10 @@ class Worker(Base):
             for i in self.keyConfig:
                 key.append(value[i])
             
-            val = value[self.valueConfig]
+            val = []
+            for i in self.valueConfig:
+                val.append(value[i])
+#             val = value[self.valueConfig]
             
 #             print(self.keyConfig, key)
             strKey = '_'.join(key)

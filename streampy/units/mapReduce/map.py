@@ -15,11 +15,11 @@ class Worker(Base):
     def init(self):
         config = self.config.get('emit', {})
         self.keyConfig = list(config.get('key', 0))
-        self.valueConfig = config.get('value', 1)
+        self.valueConfig = list(config.get('value', 1))
 
     def process(self, inData, inMeta):
         
-#         print('items', len(inData['item']))
+#         print('items', inData['item'])
         emits = self.emit(inData['item'])
         data = []
 #         print(emits)
@@ -30,6 +30,7 @@ class Worker(Base):
 
 #         print(data)
         return data
+#         return []
     
     def emit(self, value):
 
@@ -38,7 +39,11 @@ class Worker(Base):
         for i in self.keyConfig:
             key.append(value[i])
         
-        val = value[self.valueConfig]
+        val = []
+        for i in self.valueConfig:
+                val.append(value[i])
+                
+#         val = value[self.valueConfig]
             
         return [(key, [val])]
 

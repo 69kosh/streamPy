@@ -6,7 +6,6 @@ units:
       config:
          width: 640
          height: 480
-#          source: D:\datasets\homevideo\WP_20170813_003.mp4
 #          source: D:\datasets\homevideo\WP_20151114_002.mp4
 #          source: D:\datasets\homevideo\WP_20170630_002.mp4
 #          source: D:\datasets\homevideo\WP_20170107_002.mp4
@@ -77,7 +76,7 @@ units:
       config:
          cells: [15, 20]
          cellSize: [32, 32]
-         threshold: 0.75
+         threshold: 0.5
       in:
          sample: 
             from: merge

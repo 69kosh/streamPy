@@ -61,7 +61,8 @@ class Worker (Thread):
         for key in self.ins:
             package = self.ins[key].get()
             data[key] = package['data']
-            meta.update(package['meta'])
+            if None != package['meta']:
+                meta.update(package['meta'])
             
 #         print('data:')
 #         print(data)
@@ -87,6 +88,7 @@ class Worker (Thread):
     #                     print(package)
                     else:
                         print('out not found - {}'.format(key))
+                        pass
 
 class Pool(Thread):
 

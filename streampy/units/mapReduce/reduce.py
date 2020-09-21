@@ -71,7 +71,7 @@ class Worker(Base):
 #         print(inData, inMeta)
 #         if not None == inData:
 #         print(inMeta, [{'emit':self.reduce(inData)}])
-#        return [{'emit':list(np.array(inData).flatten())}]
+#         return [{'emit':list(np.array(inData).flatten())}]
         return [{'emit':self.reduce(inData)}]
 #         return []
     

@@ -2,6 +2,7 @@
 @author: Kosh
 '''
 import csv
+import sys
 from random import shuffle, randint
 
 from streampy.units.base.pooled import Pool, Worker as Base
@@ -14,12 +15,18 @@ class Worker(Base):
 #         print('getRowFromCSV.init')
         self.fullData = []
         config = self.config
+        delimiter = config.get('delimiter', ' ')
+        csv.field_size_limit(1024*1024)
+        
         with open(config['file'], 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter = ' ')
-    
+            reader = csv.reader(csvfile, delimiter = delimiter)
+            i = 0
             for row in reader:
                 self.fullData.append(row)
-        
+                i += 1
+                if (i > 1000000):
+                    break;
+             
         if config.get('shuffle', False):
             shuffle(self.fullData)
 
@@ -28,7 +35,9 @@ class Worker(Base):
         data = []
         config = self.config
         count = len(self.fullData)
-        offset = randint(count * config['from'], count * config['to'] - 1)
+        getFrom = config.get('from', 0.0)
+        getTo = config.get('to', 1.0)
+        offset = randint(count * getFrom, count * getTo - 1)
         data.append({'row':self.fullData[offset]})
         return data
 

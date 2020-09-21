@@ -8,7 +8,7 @@ from time import sleep
 
 class Worker(Base):
     '''
-    Считываем csv файл последовательно
+    Считываем csv файл последовательно несколько батчей, отдаем псевдорандомно их смешав
     '''
 
     def generator(self):
@@ -20,6 +20,8 @@ class Worker(Base):
             yield row
             
     def init(self):
+        # индексируем csv-файл - считываем построчно, запоминаем позиции каждой строки
+        # при генерации используем индекс
         self.i = 0
         self.gen = self.generator()
         
